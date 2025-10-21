@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 from PIL import Image, ImageFilter
-import matplotlib.pyplot as plt
 from skimage import util
 import random
 
