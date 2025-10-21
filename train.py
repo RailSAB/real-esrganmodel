@@ -61,11 +61,11 @@ def train(args):
         ckpt = torch.load(args.pretrained, map_location=device)
         # accept various key names
         if 'params' in ckpt:
-            net.load_state_dict(ckpt['params'], strict=True)
+            net.load_state_dict(ckpt['params'], strict=False)
         elif 'params_ema' in ckpt:
-            net.load_state_dict(ckpt['params_ema'], strict=True)
+            net.load_state_dict(ckpt['params_ema'], strict=False)
         else:
-            net.load_state_dict(ckpt, strict=True)
+            net.load_state_dict(ckpt, strict=False)
 
     dataset = HRDataset(args.data, scale=args.scale, patch_size=args.patch_size)
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True)
