@@ -50,6 +50,25 @@ def save_checkpoint(model, out_path):
     torch.save(state, out_path)
 
 
+def prune_checkpoints(out_dir, keep=5):
+    try:
+        files = [f for f in os.listdir(out_dir) if f.startswith('checkpoint_epoch') and f.endswith('.pth')]
+    except FileNotFoundError:
+        return
+    def epoch_from_name(name):
+        import re
+        m = re.search(r'checkpoint_epoch(\d+)\.pth$', name)
+        return int(m.group(1)) if m else -1
+
+    files_sorted = sorted(files, key=lambda x: epoch_from_name(x))
+    to_remove = files_sorted[:-keep] if len(files_sorted) > keep else []
+    for fname in to_remove:
+        try:
+            os.remove(os.path.join(out_dir, fname))
+        except Exception:
+            pass
+
+
 def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # model
@@ -96,13 +115,12 @@ def train(args):
                 print(f"Epoch {epoch} Step {global_step} Loss {avg:.6f}")
                 running_loss = 0.0
 
-        # save per epoch
         checkpoint_path = os.path.join(args.out_dir, f"checkpoint_epoch{epoch}.pth")
         os.makedirs(args.out_dir, exist_ok=True)
         save_checkpoint(net, checkpoint_path)
+        prune_checkpoints(args.out_dir, keep=5)
         print("Saved", checkpoint_path)
 
-    # final save
     final_path = os.path.join(args.out_dir, args.out_name)
     save_checkpoint(net, final_path)
     print("Training finished. Final weights saved to", final_path)
